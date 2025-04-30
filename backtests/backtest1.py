@@ -17,66 +17,40 @@ from nautilus_trader.persistence.wranglers import TradeTickDataWrangler
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
 from misc_util.yfin_df_to_tsdf import yf_to_timeseries
 
-
-TICKERS = ["MSFT", "SPY"]
-TOTAL_BALANCE = Decimal("1000000")
-per_ticker_trade = TOTAL_BALANCE / Decimal(len(TICKERS))
+MSFT_SIM = TestInstrumentProvider.equity(symbol="MSFT", venue="SIM")
 
 start_str = "2023-01-01"
 end_str = "2023-12-31"
 
-data_configs = []
-strategy_configs = []
+msft_df = yf.download("MSFT", start=start_str, end=end_str, interval="1d")
+msft_ts = yf_to_timeseries(msft_df, 1).tz_localize("America/New_York")
 
-for ticker in TICKERS:
+ts_event = msft_ts.index.view(np.uint64)
+ts_init = ts_event.copy()
 
-    instrument_sim = TestInstrumentProvider.equity(symbol=ticker, venue="SIM")
+bartype = BarType.from_str("MSFT.SIM-1-HOUR-LAST-EXTERNAL")
+instrument_id = InstrumentId.from_str("MSFT.SIM")
 
-    df = yf.download(ticker, start=start_str, end=end_str, interval="1d")
-    ts = yf_to_timeseries(df, 1).tz_localize("America/New_York")
-    ts.rename(columns={'Price': 'price', "Volume": "quantity"}, inplace=True)
-    ts["quantity"] = list(map(lambda x: 1 if x == 0 else x, ts["quantity"]))
-    ts["trade_id"] = np.arange(len(ts))
-    
-    wrangler = TradeTickDataWrangler(instrument=instrument_sim)
-    ticks = wrangler.process(data=ts, ts_init_delta=0)
-    
-    CATALOG_PATH = Path.cwd() / "Data" / f"{ticker}2023catalog"
-    if CATALOG_PATH.exists():
-        shutil.rmtree(CATALOG_PATH)
-    CATALOG_PATH.mkdir(parents=True)
-    
-    catalog = ParquetDataCatalog(CATALOG_PATH)
-    catalog.write_data([instrument_sim])
-    catalog.write_data(ticks)
-    
-    instrument = catalog.instruments()[0]
-    
+msft_ts.rename(columns={'Price': 'price', "Volume": "quantity"}, inplace=True)
+msft_ts["quantity"] = list(map(lambda x: 1 if x == 0 else x, msft_ts["quantity"]))
+msft_ts["trade_id"] = np.arange(len(msft_ts))
 
-    data_configs.append(
-        BacktestDataConfig(
-            catalog_path=str(CATALOG_PATH),
-            data_cls=TradeTick,
-            instrument_id=instrument.id,
-            start_time=dt_to_unix_nanos(pd.Timestamp(start_str, tz="America/New_York")),
-            end_time=dt_to_unix_nanos(pd.Timestamp(end_str, tz="America/New_York"))
-        )
-    )
-    
-    bar_type = BarType.from_str(f"{ticker}.SIM-1-HOUR-LAST-EXTERNAL")
-    initial_price = Decimal(ts.iloc[0]["price"])
-    strategy_configs.append(
-        ImportableStrategyConfig(
-            strategy_path="strategies.buy_n_hold:BuyAndHold",
-            config_path="strategies.buy_n_hold:BuyAndHoldConfig",
-            config=dict(
-                instrument_id=instrument.id,
-                bar_type=bar_type,
-                trade_size=per_ticker_trade,
-                initial_price=initial_price,
-            ),
-        )
-    )
+wrangler = TradeTickDataWrangler(instrument=MSFT_SIM)
+ticks = wrangler.process(data=msft_ts, ts_init_delta=0)
+
+CATALOG_PATH = Path.cwd() / "Data" / "MSFT2023catalog"
+
+if CATALOG_PATH.exists():
+    shutil.rmtree(CATALOG_PATH)
+CATALOG_PATH.mkdir(parents=True)
+
+catalog = ParquetDataCatalog(CATALOG_PATH)
+catalog.write_data([MSFT_SIM])
+catalog.write_data(ticks)
+
+instrument = catalog.instruments()[0]
+
+initial_price = Decimal(msft_ts.iloc[0]["price"])
 
 venues = [
     BacktestVenueConfig(
@@ -84,13 +58,37 @@ venues = [
         oms_type="HEDGING",
         account_type="CASH",
         base_currency="USD",
-        starting_balances=[f"{TOTAL_BALANCE} USD"],
+        starting_balances=["1_000_000 USD"],
     ),
 ]
 
+start = dt_to_unix_nanos(pd.Timestamp(start_str, tz="America/New_York"))
+end = dt_to_unix_nanos(pd.Timestamp(end_str, tz="America/New_York"))
+
+data = [
+    BacktestDataConfig(
+        catalog_path=str(CATALOG_PATH),
+        data_cls=TradeTick,
+        instrument_id=instrument.id,
+        start_time=start,
+        end_time=end,
+    ),
+]
+
+strategy = ImportableStrategyConfig(
+    strategy_path="strategies.buy_n_hold:BuyAndHold",
+    config_path="strategies.buy_n_hold:BuyAndHoldConfig",
+    config=dict(
+        instrument_id=instrument.id,
+        bar_type=bartype,
+        trade_size=Decimal(1),
+        initial_price=initial_price,
+    ),
+)
+
 config = BacktestRunConfig(
-    engine=BacktestEngineConfig(strategies=strategy_configs),
-    data=data_configs,
+    engine=BacktestEngineConfig(strategies=[strategy]),
+    data=data,
     venues=venues
 )
 

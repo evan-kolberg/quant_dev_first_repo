@@ -5,6 +5,7 @@ from nautilus_trader.core.datetime import unix_nanos_to_dt, format_iso8601
 from nautilus_trader.core.data import Data
 from nautilus_trader.model.identifiers import InstrumentId
 
+
 def unix_nanos_to_str(unix_nanos):
     return format_iso8601(unix_nanos_to_dt(unix_nanos))
 

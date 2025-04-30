@@ -35,7 +35,10 @@ class BuyAndHold(Strategy):
         self.position = None
 
     def on_start(self):
-        quantity = Quantity.from_int(int(self.trade_size / self.initial_price)) if self.initial_price > 0 else Quantity.from_int(0)
+        # Compute quantity ensuring at least 1 share is bought.
+        computed_quantity = int(self.trade_size / self.initial_price) if self.initial_price > 0 else 0
+        computed_quantity = max(1, computed_quantity)
+        quantity = Quantity.from_int(computed_quantity)
         order = self.order_factory.market(
             instrument_id=self.instrument_id,
             order_side=OrderSide.BUY,

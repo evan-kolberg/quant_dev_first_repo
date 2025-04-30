@@ -5,6 +5,7 @@ import pandas_market_calendars as mcal
 from datetime import datetime, time
 from typing import Literal
 
+
 def yf_to_timeseries(df: pd.DataFrame, periods_per_day: int, exchange: Literal["NYSE", "NASDAQ"] = "NYSE"):
     ppd = periods_per_day
 
@@ -44,12 +45,16 @@ def yf_to_timeseries(df: pd.DataFrame, periods_per_day: int, exchange: Literal["
     dates[~idx] = [datetime.combine(date, time(hour=16)) for date in eod_index[ppd-1::ppd]]
 
     new_df = pd.DataFrame(data=oc, index=dates, columns=["Price", "Volume"])
+
+    new_df["Volume"] = new_df["Volume"].replace(0, np.nan).fillna(method="bfill").fillna(0)
+
     return new_df
 
 if __name__ == "__main__":
-    aapl = yf.download("AAPL", "2024-01-01", "2024-03-31", interval="1d")
+    aapl = yf.download("SPY", "2024-01-01", "2024-03-31", interval="1d")
     print(aapl.head(10))
     aapl = yf_to_timeseries(aapl, 1, exchange="NASDAQ")
     print(aapl.head(10))
     print('\033[1;31mDo not run this file directly\033[0m')
+
 
