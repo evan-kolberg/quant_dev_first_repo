@@ -46,15 +46,17 @@ def yf_to_timeseries(df: pd.DataFrame, periods_per_day: int, exchange: Literal["
 
     new_df = pd.DataFrame(data=oc, index=dates, columns=["Price", "Volume"])
 
-    new_df["Volume"] = new_df["Volume"].replace(0, np.nan).fillna(method="bfill").fillna(0)
+    new_df = new_df[new_df["Volume"] != 0]
 
     return new_df
 
+
 if __name__ == "__main__":
-    aapl = yf.download("SPY", "2024-01-01", "2024-03-31", interval="1d")
+    aapl = yf.download("MSFT", "2024-01-01", "2024-03-31", interval="1d")
     print(aapl.head(10))
     aapl = yf_to_timeseries(aapl, 1, exchange="NASDAQ")
     print(aapl.head(10))
+    print(aapl.tail(10))
     print('\033[1;31mDo not run this file directly\033[0m')
 
 

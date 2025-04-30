@@ -17,6 +17,7 @@ from nautilus_trader.persistence.wranglers import TradeTickDataWrangler
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
 from misc_util.yfin_df_to_tsdf import yf_to_timeseries
 
+
 MSFT_SIM = TestInstrumentProvider.equity(symbol="MSFT", venue="SIM")
 
 start_str = "2023-01-01"
@@ -81,7 +82,7 @@ strategy = ImportableStrategyConfig(
     config=dict(
         instrument_id=instrument.id,
         bar_type=bartype,
-        trade_size=Decimal(1),
+        trade_size=Decimal(8000),
         initial_price=initial_price,
     ),
 )
@@ -92,7 +93,6 @@ config = BacktestRunConfig(
     venues=venues
 )
 
-node = BacktestNode(configs=[config])
-results = node.run()
+BacktestNode(configs=[config]).run()
 
 
