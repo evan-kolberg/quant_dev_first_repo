@@ -1,7 +1,7 @@
 import pyarrow as pa
 import msgspec
 
-from nautilus_trader.core.datetime import dt_to_unix_nanos, unix_nanos_to_dt, format_iso8601
+from nautilus_trader.core.datetime import unix_nanos_to_dt, format_iso8601
 from nautilus_trader.core.data import Data
 from nautilus_trader.model.identifiers import InstrumentId
 

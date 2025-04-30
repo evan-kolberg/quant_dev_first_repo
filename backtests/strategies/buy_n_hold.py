@@ -24,19 +24,22 @@ def human_readable_duration(ns: float):
 class BuyAndHoldConfig(StrategyConfig):
     instrument_id: InstrumentId
     trade_size: Decimal
+    initial_price: Decimal
 
 class BuyAndHold(Strategy):
     def __init__(self, config: BuyAndHoldConfig):
         super().__init__(config)
         self.instrument_id = config.instrument_id
         self.trade_size = config.trade_size
+        self.initial_price = config.initial_price
         self.position = None
 
     def on_start(self):
+        quantity = Quantity.from_int(int(self.trade_size / self.initial_price)) if self.initial_price > 0 else Quantity.from_int(0)
         order = self.order_factory.market(
             instrument_id=self.instrument_id,
             order_side=OrderSide.BUY,
-            quantity=Quantity.from_int(int(self.trade_size)),
+            quantity=quantity,
         )
         self.submit_order(order)
 
