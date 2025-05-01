@@ -43,8 +43,6 @@ catalog.write_data(ticks)
 
 instrument = catalog.instruments()[0]
 
-initial_price = Decimal(msft_ts.iloc[0]["price"])
-
 venues = [
     BacktestVenueConfig(
         name="SIM",
@@ -75,7 +73,6 @@ strategy = ImportableStrategyConfig(
         instrument_id=instrument.id,
         bar_type=bartype,
         trade_size=Decimal(100000),
-        initial_price=initial_price,
     ),
 )
 
