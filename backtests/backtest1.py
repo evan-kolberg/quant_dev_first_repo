@@ -15,7 +15,7 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.persistence.catalog import ParquetDataCatalog
 from nautilus_trader.persistence.wranglers import TradeTickDataWrangler
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
-from misc_util.yfin_df_to_tsdf import yf_to_timeseries
+from misc_util.yfin_df_to_tsdf import yfin_df_to_tsdf
 
 
 MSFT_SIM = TestInstrumentProvider.equity(symbol="MSFT", venue="SIM")
@@ -24,17 +24,10 @@ start_str = "2023-01-01"
 end_str = "2023-12-31"
 
 msft_df = yf.download("MSFT", start=start_str, end=end_str, interval="1d")
-msft_ts = yf_to_timeseries(msft_df, 1).tz_localize("America/New_York")
-
-ts_event = msft_ts.index.view(np.uint64)
-ts_init = ts_event.copy()
+msft_ts = yfin_df_to_tsdf(msft_df).tz_localize("America/New_York")
 
 bartype = BarType.from_str("MSFT.SIM-1-HOUR-LAST-EXTERNAL")
 instrument_id = InstrumentId.from_str("MSFT.SIM")
-
-msft_ts.rename(columns={'Price': 'price', "Volume": "quantity"}, inplace=True)
-msft_ts["quantity"] = list(map(lambda x: 1 if x == 0 else x, msft_ts["quantity"]))
-msft_ts["trade_id"] = np.arange(len(msft_ts))
 
 wrangler = TradeTickDataWrangler(instrument=MSFT_SIM)
 ticks = wrangler.process(data=msft_ts, ts_init_delta=0)
@@ -82,7 +75,7 @@ strategy = ImportableStrategyConfig(
     config=dict(
         instrument_id=instrument.id,
         bar_type=bartype,
-        trade_size=Decimal(8000),
+        trade_size=Decimal(100000),
         initial_price=initial_price,
     ),
 )

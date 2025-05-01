@@ -1,62 +1,42 @@
 import pandas as pd
-import numpy as np
 import yfinance as yf
-import pandas_market_calendars as mcal
-from datetime import datetime, time
-from typing import Literal
+import numpy as np
 
 
-def yf_to_timeseries(df: pd.DataFrame, periods_per_day: int, exchange: Literal["NYSE", "NASDAQ"] = "NYSE"):
-    ppd = periods_per_day
+def yfin_df_to_tsdf(df: pd.DataFrame) -> pd.DataFrame:
 
-    if df is None:
-        print("df is None. Most likely because of an invalid timeframe for yfinance.")
+    if df is None or df.empty:
+        raise ValueError("DataFrame is None or empty. Check the timeframe or ticker symbol.")
 
-    df.index = pd.DatetimeIndex(df.index.strftime("%Y-%m-%d %H:%M"))
-    start = pd.to_datetime(df.index[0])
-    end = pd.to_datetime(df.index[-1])
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = ['_'.join(col).strip() for col in df.columns.values]
 
-    holidays = mcal.get_calendar('NYSE').holidays()
-    holidays = list(holidays.holidays)
+    price_col = next((col for col in df.columns if "Adj Close" in col or "Close" in col), None)
+    volume_col = next((col for col in df.columns if "Volume" in col), None)
 
-    day_diff = np.busday_count(start.date(), end.date() + pd.Timedelta(days=1), holidays=holidays)
-    oc = np.zeros((len(df) + day_diff, 2))
+    if not price_col or not volume_col:
+        raise ValueError("Expected columns 'Close' or 'Adj Close', and 'Volume' not found in DataFrame.")
 
-    oc[::ppd+1, 0] = np.squeeze(df.loc[::ppd, "Open"].to_numpy())
-    oc_idx = np.ones((len(oc), ), dtype=bool)
-    oc_idx[::ppd+1] = False
+    close_times = df.index.normalize() + pd.Timedelta(hours=16)
 
-    try:
-        close_data = df.loc[:, "Adj Close"].values
-    except KeyError:
-        close_data = df.loc[:, "Close"].values
-    oc[oc_idx, 0] = np.squeeze(close_data)
-    oc[oc_idx, 1] = np.squeeze(df.loc[:, "Volume"].values)
+    price = df[price_col].values.squeeze()
+    volume = df[volume_col].values.squeeze()
+    result = pd.DataFrame({
+        "price": price,
+        "quantity": volume,
+        "trade_id": np.arange(len(price))
+    }, index=close_times)
 
-    idx = np.ones((len(oc), ), dtype=bool)
-    idx[ppd::ppd+1] = False
-    dates = np.zeros((len(oc), ), dtype=datetime)
-    if ppd == 1:
-        dates[idx] = [datetime.combine(date, time(hour=9, minute=30)) for date in df.index]
-    else:
-        dates[idx] = df.index
+    return result
 
-    eod_index = [x.date() for x in df.index]
-    dates[~idx] = [datetime.combine(date, time(hour=16)) for date in eod_index[ppd-1::ppd]]
-
-    new_df = pd.DataFrame(data=oc, index=dates, columns=["Price", "Volume"])
-
-    new_df = new_df[new_df["Volume"] != 0]
-
-    return new_df
 
 
 if __name__ == "__main__":
-    aapl = yf.download("MSFT", "2024-01-01", "2024-03-31", interval="1d")
-    print(aapl.head(10))
-    aapl = yf_to_timeseries(aapl, 1, exchange="NASDAQ")
-    print(aapl.head(10))
-    print(aapl.tail(10))
+
+    equity = yf.download("MSFT", "2023-01-01", "2023-12-31", interval="1d")
+    print(equity)
+    print(yfin_df_to_tsdf(equity))
+
     print('\033[1;31mDo not run this file directly\033[0m')
 
 
