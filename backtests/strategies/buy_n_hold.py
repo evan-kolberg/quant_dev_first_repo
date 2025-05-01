@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from nautilus_trader.config import StrategyConfig
 from nautilus_trader.model.enums import OrderSide
@@ -5,7 +6,6 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.objects import Quantity
 from nautilus_trader.trading.strategy import Strategy
 from nautilus_trader.model.events.position import PositionOpened, PositionChanged
-from datetime import datetime
 from nautilus_trader.model.data import TradeTick
 from nautilus_trader.common.enums import LogColor
 
@@ -24,7 +24,7 @@ class BuyAndHold(Strategy):
 
     def on_start(self):
         self.subscribe_trade_ticks(self.instrument_id)
-        self.log.info("Strategy started. Waiting for the first tick to fetch the initial price.", color=LogColor.GREEN)
+        self.log.info("Strategy started", color=LogColor.GREEN)
 
     def on_trade_tick(self, trade_tick: TradeTick):
 
@@ -36,12 +36,7 @@ class BuyAndHold(Strategy):
         if self.initial_price is None:
             self.initial_price = trade_tick.price
             self.log.info(f"Initial price set to {self.initial_price}", color=LogColor.YELLOW)
-            self._place_initial_order()
-
-    def _place_initial_order(self):
-        if self.initial_price is not None:
-            computed_quantity = int(self.trade_size // self.initial_price) if self.initial_price > 0 else 0
-            computed_quantity = max(1, computed_quantity)
+            computed_quantity = max(1, int(self.trade_size // trade_tick.price)) if trade_tick.price > 0 else 1
             quantity = Quantity.from_int(computed_quantity)
             order = self.order_factory.market(
                 instrument_id=self.instrument_id,
@@ -57,7 +52,7 @@ class BuyAndHold(Strategy):
     def on_stop(self):
         if self.position:
             self.close_position(self.position)
-        self.log.info("Strategy stopped.", color=LogColor.RED)
+        self.log.info("Strategy stopped", color=LogColor.GREEN)
 
 
 if __name__ == "__main__":

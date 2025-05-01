@@ -3,7 +3,7 @@ import yfinance as yf
 import numpy as np
 
 
-def yfin_df_to_tsdf(df: pd.DataFrame) -> pd.DataFrame:
+def yfdf_to_tsdf(df: pd.DataFrame) -> pd.DataFrame:
 
     if df is None or df.empty:
         raise ValueError("DataFrame is None or empty. Check the timeframe or ticker symbol.")
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     equity = yf.download("MSFT", "2023-01-01", "2023-12-31", interval="1d")
     print(equity)
-    print(yfin_df_to_tsdf(equity))
+    print(yfdf_to_tsdf(equity))
 
     print('\033[1;31mDo not run this file directly\033[0m')
 
