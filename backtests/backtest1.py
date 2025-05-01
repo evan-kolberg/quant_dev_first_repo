@@ -20,39 +20,34 @@ from misc_util.yfdf_to_tsdf import yfdf_to_tsdf
 
 
 #----------------------------------------------
-start_str = "2023-01-01"
-end_str = "2023-12-31"
+start_date = "2023-01-01"
+end_date = "2023-12-31"
 interval = "1d"
-symbol = "MSFT"
-investment = Decimal(100000)
+symbol = "AAPL"
+investment = Decimal(300_000)
 #----------------------------------------------
 
 
 
 SIM = TestInstrumentProvider.equity(symbol=symbol, venue="SIM")
 
-tsdf = yfdf_to_tsdf(yf.download("MSFT", start=start_str, end=end_str, interval=interval)).tz_localize("America/New_York")
+tsdf = yfdf_to_tsdf(yf.download(symbol, start=start_date, end=end_date, interval=interval)).tz_localize("America/New_York")
 
 
-wrangler = TradeTickDataWrangler(instrument=SIM)
-ticks = wrangler.process(data=tsdf, ts_init_delta=0)
-
-start_year, end_year = start_str.split("-")[0], end_str.split("-")[0]
-CATALOG_PATH = Path.cwd() / "Data" / f"{symbol}~{start_str}~{end_str}~{interval}"
+CATALOG_PATH = Path.cwd() / "Data" / f"{symbol}~{start_date}~{end_date}~{interval}"
 
 if CATALOG_PATH.exists():
     shutil.rmtree(CATALOG_PATH)
 CATALOG_PATH.mkdir(parents=True)
 
-catalog = ParquetDataCatalog(CATALOG_PATH)
-catalog.write_data([SIM])
-catalog.write_data(ticks)
+ParquetDataCatalog(CATALOG_PATH).write_data([SIM])
+ParquetDataCatalog(CATALOG_PATH).write_data(TradeTickDataWrangler(instrument=SIM).process(data=tsdf, ts_init_delta=0))
 
 instrument_id = InstrumentId.from_str("SIM.SIM")
-instrument = catalog.instruments()[0]
+instrument = ParquetDataCatalog(CATALOG_PATH).instruments()[0]
 
-start = dt_to_unix_nanos(pd.Timestamp(start_str, tz="America/New_York"))
-end = dt_to_unix_nanos(pd.Timestamp(end_str, tz="America/New_York"))
+start = dt_to_unix_nanos(pd.Timestamp(start_date, tz="America/New_York"))
+end = dt_to_unix_nanos(pd.Timestamp(end_date, tz="America/New_York"))
 
 
 BacktestNode(configs=[BacktestRunConfig(
