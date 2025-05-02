@@ -1,4 +1,3 @@
-from datetime import datetime
 from decimal import Decimal
 from collections import deque
 from nautilus_trader.config import StrategyConfig
@@ -49,15 +48,23 @@ class Concavity(Strategy):
                     quantity=quantity,
                 )
                 self.submit_order(order)
-                self.log.info(f"Buy order at {price}", color=LogColor.YELLOW)
+                self.log.info(f"Buy order at {price}", color=LogColor.BLUE)
             elif second_diff < 0 and self.position:
                 self.close_position(self.position)
-                self.log.info(f"Close position at {price}", color=LogColor.RED)
+                # closing will be logged in on_event
 
     def on_event(self, event):
-        if isinstance(event, (PositionOpened, PositionChanged)):
+        if isinstance(event, PositionOpened):
+            self.position = self.cache.position(event.position_id)
+            self.log.info(f"Position opened at {event.avg_px_open}", color=LogColor.BLUE)
+        elif isinstance(event, PositionChanged):
             self.position = self.cache.position(event.position_id)
         elif isinstance(event, PositionClosed):
+            pnl = event.realized_pnl
+            # compare using numeric conversion
+            profit = float(pnl) > 0
+            color = LogColor.GREEN if profit else LogColor.RED
+            self.log.info(f"Position closed PnL: {pnl}", color=color)
             self.position = None
 
     def on_stop(self):

@@ -50,7 +50,7 @@ catalog.write_data(
     )
 )
 
-instrument_id = InstrumentId.from_str("SIM.SIM")
+instrument_id = InstrumentId.from_str(f"{SIM.venue}.{SIM.symbol}")
 instrument = catalog.instruments()[0]
 
 start = dt_to_unix_nanos(pd.Timestamp(START_DATE, tz="America/New_York"))
@@ -65,7 +65,6 @@ BacktestNode(configs=[
                     config_path="strategies.buy_n_hold:BuyAndHoldConfig",
                     config={
                         "instrument_id": instrument.id,
-                        "bar_type": BarType.from_str("SIM.SIM-1-HOUR-LAST-EXTERNAL"),
                         "trade_size": INVESTMENT,
                     },
                 )
