@@ -16,14 +16,12 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.persistence.catalog import ParquetDataCatalog
 from nautilus_trader.persistence.wranglers import TradeTickDataWrangler
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
+from nautilus_trader.common.component import init_logging
+
 from misc_util.yfdf_to_tsdf import yfdf_to_tsdf
 
-from nautilus_trader.common.component import init_logging
-from nautilus_trader.common.component import Logger
 
 log_guard = init_logging()
-logger = Logger("MyLogger")
-
 
 # ----------------------------------------------
 START_DATE = "2024-01-01"
