@@ -14,7 +14,15 @@ class BuyAndHoldConfig(StrategyConfig):
     instrument_id: InstrumentId
     trade_size: Decimal
 
+
 class BuyAndHold(Strategy):
+    """
+    A simple Buy and Hold trading strategy
+    Orders are placed on the first tick and are sold on the last
+    Trade size is the investment
+    That will be used to compute the quantity of stocks bought
+    Quantity of stocks x initial price <= investment
+    """
     def __init__(self, config: BuyAndHoldConfig):
         super().__init__(config)
         self.instrument_id = config.instrument_id
@@ -27,7 +35,6 @@ class BuyAndHold(Strategy):
         self.log.info("Strategy started", color=LogColor.GREEN)
 
     def on_trade_tick(self, trade_tick: TradeTick):
-
         self.log.info(
             f"Tick: {trade_tick.price}, Timestamp: {datetime.fromtimestamp(trade_tick.ts_event / 1e9).strftime('%m/%d/%Y, %H:%M:%S')}",
             color=LogColor.BLUE

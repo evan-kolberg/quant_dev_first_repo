@@ -2,11 +2,22 @@ import pandas as pd
 import yfinance as yf
 import numpy as np
 
-
 def yfdf_to_tsdf(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Converts a Yahoo Finance DataFrame to a time-series DataFrame (for Nautilus Trader)
 
+    Args:
+        df (pd.DataFrame): Input DataFrame from Yahoo Finance
+
+    Returns:
+        pd.DataFrame: Transformed DataFrame with price, quantity, and trade_id
+        Indexes are preserved from the input DataFrame
+
+    Raises:
+        ValueError: If the DataFrame is None, empty, or missing required columns
+    """
     if df is None or df.empty:
-        raise ValueError("DataFrame is None or empty. Check the timeframe or ticker symbol.")
+        raise ValueError("DataFrame is None or empty. Check the timeframe or ticker symbol")
 
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = ['_'.join(col).strip() for col in df.columns.values]
@@ -27,9 +38,7 @@ def yfdf_to_tsdf(df: pd.DataFrame) -> pd.DataFrame:
 
     return result
 
-
 if __name__ == "__main__":
-
     equity = yf.download("MSFT", "2024-01-01", "2024-12-31", interval="4h")
     print(equity)
     print(yfdf_to_tsdf(equity))
