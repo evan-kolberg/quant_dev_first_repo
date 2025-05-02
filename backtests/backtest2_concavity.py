@@ -24,11 +24,11 @@ from misc_util.yfdf_to_tsdf import yfdf_to_tsdf
 log_guard = init_logging()
 
 # ----------------------------------------------
-START_DATE = "2024-01-01"
+START_DATE = "2024-07-02"
 END_DATE = "2024-12-31"
-INTERVAL = "4h"
-SYMBOL = "MSFT"
-INVESTMENT = Decimal(200_000)
+INTERVAL = "1h"
+SYMBOL = "AAPL"
+INVESTMENT = Decimal(400_000)
 WINDOW = 5
 # ----------------------------------------------
 

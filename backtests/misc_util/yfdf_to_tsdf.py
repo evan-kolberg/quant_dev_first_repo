@@ -39,6 +39,9 @@ def yfdf_to_tsdf(df: pd.DataFrame) -> pd.DataFrame:
     return result
 
 if __name__ == "__main__":
+
+    # be careful with the date range and interval -- yfinance will reject heafty requests
+    # 1 year with 4h interval works, half year with 1h interval works, etc.
     equity = yf.download("MSFT", "2024-01-01", "2024-12-31", interval="4h")
     print(equity)
     print(yfdf_to_tsdf(equity))
