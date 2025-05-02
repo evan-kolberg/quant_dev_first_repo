@@ -1,6 +1,7 @@
+import numpy as np
 import pandas as pd
 import yfinance as yf
-import numpy as np
+
 
 def yfdf_to_tsdf(df: pd.DataFrame) -> pd.DataFrame:
     """

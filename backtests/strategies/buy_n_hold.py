@@ -1,13 +1,15 @@
-from datetime import datetime
+#from datetime import datetime
 from decimal import Decimal
+
+from nautilus_trader.common.enums import LogColor
 from nautilus_trader.config import StrategyConfig
+from nautilus_trader.model.data import TradeTick
 from nautilus_trader.model.enums import OrderSide
+from nautilus_trader.model.events.position import (PositionChanged,
+                                                   PositionOpened)
 from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.objects import Quantity
 from nautilus_trader.trading.strategy import Strategy
-from nautilus_trader.model.events.position import PositionOpened, PositionChanged
-from nautilus_trader.model.data import TradeTick
-from nautilus_trader.common.enums import LogColor
 
 
 class BuyAndHoldConfig(StrategyConfig):
@@ -35,10 +37,10 @@ class BuyAndHold(Strategy):
         self.log.info("Strategy started", color=LogColor.GREEN)
 
     def on_trade_tick(self, trade_tick: TradeTick):
-        self.log.info(
-            f"Tick: {trade_tick.price}, Timestamp: {datetime.fromtimestamp(trade_tick.ts_event / 1e9).strftime('%m/%d/%Y, %H:%M:%S')}",
-            color=LogColor.BLUE
-        )
+        #self.log.info(
+        #    f"Tick: {trade_tick.price}, Timestamp: {datetime.fromtimestamp(trade_tick.ts_event / 1e9).strftime('%m/%d/%Y, %H:%M:%S')}",
+        #    color=LogColor.BLUE
+        #)
 
         if self.initial_price is None:
             self.initial_price = trade_tick.price

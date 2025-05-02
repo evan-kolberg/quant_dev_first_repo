@@ -1,13 +1,16 @@
-from decimal import Decimal
 from collections import deque
+from decimal import Decimal
+
+from nautilus_trader.common.enums import LogColor
 from nautilus_trader.config import StrategyConfig
+from nautilus_trader.model.data import TradeTick
 from nautilus_trader.model.enums import OrderSide
+from nautilus_trader.model.events.position import (PositionChanged,
+                                                   PositionClosed,
+                                                   PositionOpened)
 from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.objects import Quantity
 from nautilus_trader.trading.strategy import Strategy
-from nautilus_trader.model.events.position import PositionOpened, PositionChanged, PositionClosed
-from nautilus_trader.model.data import TradeTick
-from nautilus_trader.common.enums import LogColor
 
 
 class ConcavityConfig(StrategyConfig):
