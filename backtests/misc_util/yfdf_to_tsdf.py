@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # be careful with the date range and interval -- yfinance will reject heafty requests
     # 1 year with 4h interval works, half year with 1h interval works, etc.
     # -720 day limit for fetching (like, days ago. curr date - 720 days = limit), i believe it yelled at me one time
-    equity = yf.download("MSFT", "2024-01-01", "2024-12-31", interval="4h")
+    equity = yf.download("MSFT", "2024-07-02", "2024-12-31", interval="1h")
     print(equity)
     print(yfdf_to_tsdf(equity))
 

@@ -17,7 +17,7 @@ from nautilus_trader.persistence.catalog import ParquetDataCatalog
 from nautilus_trader.persistence.wranglers import TradeTickDataWrangler
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
 
-log_guard = init_logging()
+_ = init_logging()
 
 current_year = datetime.now().year
 # ----------------------------------------------
@@ -26,6 +26,7 @@ END_DATE = f"{current_year-1}-12-31"
 INTERVAL = "1h"
 SYMBOL = "AAPL"
 INVESTMENT = Decimal(400_000)
+WINDOW = 5
 # ----------------------------------------------
 
 SIM = TestInstrumentProvider.equity(symbol=SYMBOL, venue="SIM")
@@ -45,16 +46,18 @@ if not CATALOG_PATH.exists():
         )
     )
 
+
 BacktestNode(configs=[
     BacktestRunConfig(
         engine=BacktestEngineConfig(
             strategies=[
                 ImportableStrategyConfig(
-                    strategy_path="strategies.buy_n_hold:BuyAndHold",
-                    config_path="strategies.buy_n_hold:BuyAndHoldConfig",
+                    strategy_path="strategies.concavity:Concavity",
+                    config_path="strategies.concavity:ConcavityConfig",
                     config={
                         "instrument_id": SIM.id,
                         "trade_size": INVESTMENT,
+                        "window": WINDOW,
                     },
                 )
             ]
@@ -79,8 +82,6 @@ BacktestNode(configs=[
         ],
     )
 ]).run()
-
-
 
 
 
