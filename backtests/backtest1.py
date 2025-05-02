@@ -20,9 +20,9 @@ from misc_util.yfdf_to_tsdf import yfdf_to_tsdf
 
 
 #----------------------------------------------
-start_date = "2023-01-01"
-end_date = "2023-12-31"
-interval = "1d"
+start_date = "2024-01-01"
+end_date = "2024-12-31"
+interval = "4h"
 symbol = "AAPL"
 investment = Decimal(300_000)
 #----------------------------------------------
@@ -31,7 +31,7 @@ investment = Decimal(300_000)
 
 SIM = TestInstrumentProvider.equity(symbol=symbol, venue="SIM")
 
-tsdf = yfdf_to_tsdf(yf.download(symbol, start=start_date, end=end_date, interval=interval)).tz_localize("America/New_York")
+tsdf = yfdf_to_tsdf(yf.download(symbol, start=start_date, end=end_date, interval=interval))
 
 
 CATALOG_PATH = Path.cwd() / "Data" / f"{symbol}~{start_date}~{end_date}~{interval}"

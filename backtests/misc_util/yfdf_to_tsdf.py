@@ -17,22 +17,20 @@ def yfdf_to_tsdf(df: pd.DataFrame) -> pd.DataFrame:
     if not price_col or not volume_col:
         raise ValueError("Expected columns 'Close' or 'Adj Close', and 'Volume' not found in DataFrame.")
 
-    close_times = df.index.normalize() + pd.Timedelta(hours=16)
-
     price = df[price_col].values.squeeze()
     volume = df[volume_col].values.squeeze()
     result = pd.DataFrame({
         "price": price,
         "quantity": volume,
         "trade_id": np.arange(len(price))
-    }, index=close_times)
+    }, index=df.index)
 
     return result
 
 
 if __name__ == "__main__":
 
-    equity = yf.download("MSFT", "2023-01-01", "2023-12-31", interval="1d")
+    equity = yf.download("MSFT", "2024-01-01", "2024-12-31", interval="4h")
     print(equity)
     print(yfdf_to_tsdf(equity))
 
