@@ -31,7 +31,7 @@ END_DATE = f"{current_year-1}-12-31"
 INTERVAL = "1h"
 INVESTMENT = Decimal(400_000)
 VENUE_STARTING_BALANCE = "1_000_000 USD"
-STRAT_NUMS = [2]
+STRAT_NUMS = [0, 1, 2]
 
 SIM = TestInstrumentProvider.equity(symbol=SYMBOL, venue="SIM")
 STRATEGIES = [
@@ -66,7 +66,7 @@ STRATEGIES = [
 
 
 
-CATALOG_PATH = Path.cwd() / "Data" / f"{SYMBOL}~{START_DATE}~{END_DATE}~{INTERVAL}"
+CATALOG_PATH = Path().resolve() / "Data" / f"{SYMBOL}~{START_DATE}~{END_DATE}~{INTERVAL}"
 if not CATALOG_PATH.exists():
     tsdf = yfdf_to_tsdf(
         yf.download(SYMBOL, start=START_DATE, end=END_DATE, interval=INTERVAL)
