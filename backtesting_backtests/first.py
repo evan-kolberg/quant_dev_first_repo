@@ -4,6 +4,9 @@ from backtesting.lib import crossover
 from backtesting.test import SMA, GOOG
 
 
+print(GOOG)
+
+
 class SmaCross(Strategy):
     n1 = 10
     n2 = 20
@@ -27,6 +30,6 @@ bt = Backtest(GOOG, SmaCross,
               exclusive_orders=True)
 
 output = bt.run()
-bt.plot()
+bt.plot(filename='sma_cross_example.html', open_browser=False)
 
 
