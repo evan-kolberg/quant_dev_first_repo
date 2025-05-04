@@ -51,12 +51,6 @@ class MultiBuyAndHold(Strategy):
         if isinstance(event, PositionOpened):
             pos = self.cache.position(event.position_id)
             self._positions.append(pos)
-            self.log.info(f"Position opened: {pos.id}", color=LogColor.BLUE)
-        elif isinstance(event, PositionClosed):
-            self._positions[:] = [p for p in self._positions if p.id != event.position_id]
-            pnl = event.realized_pnl
-            color = LogColor.GREEN if float(pnl) > 0 else LogColor.RED
-            self.log.info(f"Position closed PnL: {pnl}", color=color)
 
     def on_stop(self):
         for pos in list(self._positions):
