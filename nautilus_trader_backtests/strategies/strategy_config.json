@@ -1,22 +1,35 @@
 {
-  "strategies": [
+  "strategies": [ 
     {
       "strategy_path": "strategies.buy_n_hold:BuyAndHold",
       "config_path":   "strategies.buy_n_hold:BuyAndHoldConfig",
-      "config": {}
+      "config": {
+        "trade_size": 0
+      }
     },
     {
       "strategy_path": "strategies.concavity:Concavity",
       "config_path":   "strategies.concavity:ConcavityConfig",
       "config": {
-        "window": 5
+        "window": 5,
+        "trade_size": 0
       }
     },
     {
       "strategy_path": "strategies.momentum:Momentum",
       "config_path":   "strategies.momentum:MomentumConfig",
       "config": {
-        "window": 10
+        "window": 10,
+        "trade_size": 0
+      }
+    },
+    {
+      "strategy_path": "strategies.multi_buy_n_hold:MultiBuyAndHold",
+      "config_path":   "strategies.multi_buy_n_hold:MultiBuyAndHoldConfig",
+      "config": {
+        "instrument_ids": [],
+        "multipliers":    [],
+        "trade_size":     0
       }
     }
   ]

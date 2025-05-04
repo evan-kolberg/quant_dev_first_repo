@@ -22,13 +22,14 @@ _ = init_logging()
 
 current_year = datetime.now().year
 # ---------------------------------------------------------------------------------
-SYMBOL = "AAPL"
-START_DATE = f"{current_year-1}-07-02"
-END_DATE = f"{current_year-1}-12-31"
-INTERVAL = "1h"
-INVESTMENT = Decimal(400_000)
-VENUE_STARTING_BALANCE = "1_000_000 USD"
-STRAT_NUMS = [0, 1, 2] # 0 based indexes for strats in strategy_config.json
+SYMBOL                  =   "AAPL"
+START_DATE              =   f"{current_year-1}-07-02"
+END_DATE                =   f"{current_year-1}-12-31"
+INTERVAL                =   "1h"
+INVESTMENT              =   Decimal(400_000)
+VENUE_STARTING_BALANCE  =   "1_000_000 USD"
+STRAT_NUMS              =   [0, 1, 2] # 0 based indexes for strats in strategy_config.json
+# ---------------------------------------------------------------------------------
 
 SIM = TestInstrumentProvider.equity(symbol=SYMBOL, venue="SIM")
 
@@ -36,26 +37,23 @@ config_file = Path(__file__).parent / "strategies" / "strategy_config.json"
 with open(config_file) as f:
     STRATEGIES = json.load(f)["strategies"]
 
-for strat in STRATEGIES:
-    strat["config"]["instrument_id"] = SIM.id
-    strat["config"]["trade_size"] = INVESTMENT/len(STRAT_NUMS)
-# ---------------------------------------------------------------------------------
+for i in STRAT_NUMS:
+    STRATEGIES[i]["config"]["instrument_id"] = SIM.id
+    STRATEGIES[i]["config"]["trade_size"] = INVESTMENT / len(STRAT_NUMS)
 
 CATALOG_PATH = Path().resolve() / "Data" / f"{SYMBOL}~{START_DATE}~{END_DATE}~{INTERVAL}"
 if not CATALOG_PATH.exists():
-    tsdf = yfdf_to_tsdf(yf.download(SYMBOL, start=START_DATE, end=END_DATE, interval=INTERVAL))
     CATALOG_PATH.mkdir(parents=True)
     catalog = ParquetDataCatalog(CATALOG_PATH)
     catalog.write_data([SIM])
-    catalog.write_data(TradeTickDataWrangler(instrument=SIM).process(data=tsdf, ts_init_delta=0))
+    TSDF = yfdf_to_tsdf(yf.download(SYMBOL, start=START_DATE, end=END_DATE, interval=INTERVAL))
+    catalog.write_data(TradeTickDataWrangler(instrument=SIM).process(data=TSDF, ts_init_delta=0))
 
 BacktestNode(
     configs=[
         BacktestRunConfig(
             engine=BacktestEngineConfig(
-                strategies=[
-                    ImportableStrategyConfig(**STRATEGIES[i]) for i in STRAT_NUMS
-                ]
+                strategies=[ImportableStrategyConfig(**STRATEGIES[i]) for i in STRAT_NUMS]
             ),
             data=[
                 BacktestDataConfig(
