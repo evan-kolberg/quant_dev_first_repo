@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
@@ -5,14 +6,10 @@ from pathlib import Path
 import pandas as pd
 import yfinance as yf
 from misc_util.yfdf_to_tsdf import yfdf_to_tsdf
-
-from nautilus_trader.backtest.node import (
-    BacktestDataConfig,
-    BacktestEngineConfig,
-    BacktestNode,
-    BacktestRunConfig,
-    BacktestVenueConfig,
-)
+from nautilus_trader.backtest.node import (BacktestDataConfig,
+                                           BacktestEngineConfig, BacktestNode,
+                                           BacktestRunConfig,
+                                           BacktestVenueConfig)
 from nautilus_trader.common.component import init_logging
 from nautilus_trader.config import ImportableStrategyConfig
 from nautilus_trader.core.datetime import dt_to_unix_nanos
@@ -31,52 +28,26 @@ END_DATE = f"{current_year-1}-12-31"
 INTERVAL = "1h"
 INVESTMENT = Decimal(400_000)
 VENUE_STARTING_BALANCE = "1_000_000 USD"
-STRAT_NUMS = [0, 1, 2]
+STRAT_NUMS = [0, 1, 2] # 0 based indexes for strats in strategy_config.json
 
 SIM = TestInstrumentProvider.equity(symbol=SYMBOL, venue="SIM")
-STRATEGIES = [
-    {
-        "strategy_path": "strategies.buy_n_hold:BuyAndHold",
-        "config_path":   "strategies.buy_n_hold:BuyAndHoldConfig",
-        "config": {
-            "instrument_id": SIM.id,
-            "trade_size":    INVESTMENT/len(STRAT_NUMS),
-        },
-    },
-    {
-        "strategy_path": "strategies.concavity:Concavity",
-        "config_path":   "strategies.concavity:ConcavityConfig",
-        "config": {
-            "instrument_id": SIM.id,
-            "trade_size":    INVESTMENT/len(STRAT_NUMS),
-            "window":        5,
-        },
-    },
-    {
-        "strategy_path": "strategies.momentum:Momentum",
-        "config_path":   "strategies.momentum:MomentumConfig",
-        "config": {
-            "instrument_id": SIM.id,
-            "trade_size":    INVESTMENT/len(STRAT_NUMS),
-            "window":        10,
-        },
-    }, 
-]
+
+config_file = Path(__file__).parent / "strategies" / "strategy_config.json"
+with open(config_file) as f:
+    STRATEGIES = json.load(f)["strategies"]
+
+for strat in STRATEGIES:
+    strat["config"]["instrument_id"] = SIM.id
+    strat["config"]["trade_size"] = INVESTMENT/len(STRAT_NUMS)
 # ---------------------------------------------------------------------------------
-
-
 
 CATALOG_PATH = Path().resolve() / "Data" / f"{SYMBOL}~{START_DATE}~{END_DATE}~{INTERVAL}"
 if not CATALOG_PATH.exists():
-    tsdf = yfdf_to_tsdf(
-        yf.download(SYMBOL, start=START_DATE, end=END_DATE, interval=INTERVAL)
-    )
+    tsdf = yfdf_to_tsdf(yf.download(SYMBOL, start=START_DATE, end=END_DATE, interval=INTERVAL))
     CATALOG_PATH.mkdir(parents=True)
     catalog = ParquetDataCatalog(CATALOG_PATH)
     catalog.write_data([SIM])
-    catalog.write_data(
-        TradeTickDataWrangler(instrument=SIM).process(data=tsdf, ts_init_delta=0)
-    )
+    catalog.write_data(TradeTickDataWrangler(instrument=SIM).process(data=tsdf, ts_init_delta=0))
 
 BacktestNode(
     configs=[
@@ -91,12 +62,8 @@ BacktestNode(
                     catalog_path=str(CATALOG_PATH),
                     data_cls=TradeTick,
                     instrument_id=SIM.id,
-                    start_time=dt_to_unix_nanos(
-                        pd.Timestamp(START_DATE, tz="America/New_York")
-                    ),
-                    end_time=dt_to_unix_nanos(
-                        pd.Timestamp(END_DATE, tz="America/New_York")
-                    ),
+                    start_time=dt_to_unix_nanos(pd.Timestamp(START_DATE, tz="America/New_York")),
+                    end_time=dt_to_unix_nanos(pd.Timestamp(END_DATE, tz="America/New_York")),
                 )
             ],
             venues=[

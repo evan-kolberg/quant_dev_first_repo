@@ -1,0 +1,23 @@
+{
+  "strategies": [
+    {
+      "strategy_path": "strategies.buy_n_hold:BuyAndHold",
+      "config_path":   "strategies.buy_n_hold:BuyAndHoldConfig",
+      "config": {}
+    },
+    {
+      "strategy_path": "strategies.concavity:Concavity",
+      "config_path":   "strategies.concavity:ConcavityConfig",
+      "config": {
+        "window": 5
+      }
+    },
+    {
+      "strategy_path": "strategies.momentum:Momentum",
+      "config_path":   "strategies.momentum:MomentumConfig",
+      "config": {
+        "window": 10
+      }
+    }
+  ]
+}
