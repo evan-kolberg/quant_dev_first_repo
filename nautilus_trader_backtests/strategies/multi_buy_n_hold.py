@@ -24,20 +24,18 @@ class MultiBuyAndHold(Strategy):
         super().__init__(config)
         self._prices = {}
         self._ordered = False
+        self._positions: List = []
 
     def on_start(self):
-        # subscribe to all instruments
         for inst in self.config.instrument_ids:
             self.subscribe_trade_ticks(inst)
 
     def on_trade_tick(self, trade_tick: TradeTick):
         if self._ordered:
             return
-        # record first tick price per instrument
         self._prices[trade_tick.instrument_id] = trade_tick.price
         if len(self._prices) < len(self.config.instrument_ids):
             return
-        # place buys once all instruments have a price
         for inst_id, weight in zip(self.config.instrument_ids, self.config.multipliers):
             price = self._prices[inst_id]
             alloc  = self.config.trade_size * Decimal(weight)
@@ -50,9 +48,24 @@ class MultiBuyAndHold(Strategy):
             self.submit_order(order)
         self._ordered = True
 
+    def on_event(self, event):
+        if isinstance(event, PositionOpened):
+            pos = self.cache.position(event.position_id)
+            self._positions.append(pos)
+            self.log.info(f"Position opened: {pos.id}", color=LogColor.BLUE)
+        elif isinstance(event, PositionClosed):
+            self._positions[:] = [p for p in self._positions if p.id != event.position_id]
+            pnl = event.realized_pnl
+            color = LogColor.GREEN if float(pnl) > 0 else LogColor.RED
+            self.log.info(f"Position closed PnL: {pnl}", color=color)
+
     def on_stop(self):
-        # close any open positions
-        pass
+        for pos in list(self._positions):
+            self.close_position(pos)
+        self.log.info("MultiBuyAndHold stopped", color=LogColor.GREEN)
+
+
+
 
 
 
