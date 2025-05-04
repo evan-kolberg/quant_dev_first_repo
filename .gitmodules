@@ -5,6 +5,3 @@
 	path = Lean
 	url = https://github.com/QuantConnect/Lean.git
 
-[submodule "minitrade_backtests/minitrade"]
-	path = minitrade_backtests/minitrade
-	url = https://github.com/dodid/minitrade.git
