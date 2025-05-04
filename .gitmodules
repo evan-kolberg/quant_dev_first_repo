@@ -4,3 +4,6 @@
 [submodule "Lean"]
 	path = Lean
 	url = https://github.com/QuantConnect/Lean.git
+[submodule "minitrade"]
+	path = minitrade
+	url = https://github.com/dodid/minitrade.git
