@@ -14,10 +14,9 @@ from nautilus_trader.trading.strategy import Strategy
 
 class MultiBuyAndHoldConfig(StrategyConfig):
     instrument_ids: List[InstrumentId]
-    multipliers:    List[float]
     trade_size:     Decimal
-
-
+    multipliers:    List[float]
+    
 class MultiBuyAndHold(Strategy):
 
     def __init__(self, config: MultiBuyAndHoldConfig):

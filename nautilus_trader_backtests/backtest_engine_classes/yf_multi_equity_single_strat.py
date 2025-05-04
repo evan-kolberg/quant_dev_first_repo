@@ -1,5 +1,4 @@
 import hashlib
-from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
@@ -27,13 +26,11 @@ class YahooFinanceMultiEquitySingleStratBacktest:
 
     Attributes:
         symbols (list[str]): List of equity symbols to backtest.
-        multipliers (list[float]): List of allocation weights for each symbol.
         start_date (str): Start date for the backtest in 'YYYY-MM-DD' format.
         end_date (str): End date for the backtest in 'YYYY-MM-DD' format.
         interval (str): Data periodicity for Yahoo Finance (e.g., '1h', '1d').
-        investment (Decimal): Amount to be used in the strategy.
-        venue_bal (str): Maximum venue balance (e.g., '1_000_000 USD').
         data_output_path (str | Path): Path to the directory where data will be stored.
+        venue_bal (str): Maximum venue balance (e.g., '1_000_000 USD').
         strategy_config (dict): Configuration for the strategy, including paths and parameters.
 
     ## Instance Methods
@@ -42,64 +39,67 @@ class YahooFinanceMultiEquitySingleStratBacktest:
 
     ## Example Usage
     ```
-        ffrom datetime import datetime
         from decimal import Decimal
 
         from backtest_engine_classes.yf_multi_equity_single_strat import \\
             YahooFinanceMultiEquitySingleStratBacktest
 
-        current_year        =   datetime.now().year
         SYMBOLS             =   [
                                     "AAPL", "MSFT", "GOOG",
                                     "AMZN", "TSLA", "META",
                                     "NVDA", "NFLX", "JNJ",
-                                ]                                       # at least 1 symbol
-        MULTIPLIERS         =   [1 / len(SYMBOLS) for _ in SYMBOLS]     # allocation weights
-        START_DATE          =   f"{current_year-1}-07-02"
-        END_DATE            =   f"{current_year-1}-12-31"
-        INTERVAL            =   "1h"                                    # data periodicity
-        INVESTMENT          =   Decimal(750_000)                        # $ to be used in the strategy
-        VENUE_BAL           =   "1_000_000 USD"                         # max venue balance  
+                                ]
+        START_DATE          =   f"2024-07-02"
+        END_DATE            =   f"2024-12-31"
+        INTERVAL            =   "1h"
         DATA_OUTPUT_PATH    =   "/Users/.../Library/CloudStorage/.../Desktop/.../.../Data"
+        VENUE_BAL           =   "1_000_000 USD" 
         STRATEGY_CONFIG     =   {
                                     "strategy_path": "strategies.multi_buy_n_hold:MultiBuyAndHold",
                                     "config_path":   "strategies.multi_buy_n_hold:MultiBuyAndHoldConfig",
                                     "config": {
-                                    "instrument_ids": [],
-                                    "multipliers":    [],
-                                    "trade_size":     0
+                                        "trade_size":     Decimal(750_000),
+                                        "multipliers":    [1 / len(SYMBOLS) for _ in SYMBOLS],
                                     }
                                 }
 
         results = YahooFinanceMultiEquitySingleStratBacktest(
-            SYMBOLS,    MULTIPLIERS,        START_DATE,
-            END_DATE,   INTERVAL,           INVESTMENT,
-            VENUE_BAL,  DATA_OUTPUT_PATH,   STRATEGY_CONFIG
+            SYMBOLS, START_DATE, END_DATE, INTERVAL,
+            DATA_OUTPUT_PATH, VENUE_BAL, STRATEGY_CONFIG
         ).run_backtest()
 
         print(results)
+    ```
+
+    ## Notes
+    - Make sure that your strategy accepts instrument_ids
+    ```
+    class MultiBuyAndHoldConfig(StrategyConfig):
+        instrument_ids: List[InstrumentId]
+        ...
+    ```
+
+    SIMS are created using the TestInstrumentProvider and the IDs are injected into the config
+    ```
+    strat_cfg["config"]["instrument_ids"] = [sim.id for sim in self.sims]
     ```
     """
     def __init__(
         self,
         symbols: list[str],
-        multipliers: list[float],
         start_date: str,
         end_date: str,
         interval: str,
-        investment: Decimal,
-        venue_bal: str,
         data_output_path: str | Path,
+        venue_bal: str,
         strategy_config: dict,
     ):
         self.symbols = symbols
-        self.multipliers = multipliers
         self.start_date = start_date
         self.end_date = end_date
         self.interval = interval
-        self.investment = investment
+        self.data_output_path = Path(data_output_path)
         self.venue_bal = venue_bal
-        self.data_output_path = Path(data_output_path) if data_output_path else Path().resolve() / "Data"
         self.strategy_config = strategy_config
         self.sims = [TestInstrumentProvider.equity(symbol=s, venue="SIM") for s in symbols]
 
@@ -157,8 +157,6 @@ class YahooFinanceMultiEquitySingleStratBacktest:
 
         strat_cfg = self.strategy_config
         strat_cfg["config"]["instrument_ids"] = [sim.id for sim in self.sims]
-        strat_cfg["config"]["multipliers"] = self.multipliers
-        strat_cfg["config"]["trade_size"] = self.investment
 
         self.results = BacktestNode(
             configs=[
