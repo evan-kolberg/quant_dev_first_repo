@@ -39,7 +39,7 @@ data = yahoo.daily_bar(','.join(symbols), start='2024-01-01')
 BuyAndHoldCustomAlloc.custom_weights = custom_weights
 bt = Backtest(data, BuyAndHoldCustomAlloc, cash=10000)
 bt.run()
-bt.plot(open_browser=False)
+bt.plot(plot_allocation=True, open_browser=True)
 
 
 
