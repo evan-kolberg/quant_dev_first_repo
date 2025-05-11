@@ -14,9 +14,10 @@ from nautilus_trader.trading.strategy import Strategy
 
 class MultiBuyAndHoldConfig(StrategyConfig):
     instrument_ids: List[InstrumentId]
-    trade_size:     Decimal
-    multipliers:    List[float]
-    
+    trade_size: Decimal
+    multipliers: List[float]
+
+
 class MultiBuyAndHold(Strategy):
 
     def __init__(self, config: MultiBuyAndHoldConfig):
@@ -37,9 +38,9 @@ class MultiBuyAndHold(Strategy):
             return
         for inst_id, weight in zip(self.config.instrument_ids, self.config.multipliers):
             price = self._prices[inst_id]
-            alloc  = self.config.trade_size * Decimal(weight)
-            qty    = max(1, int(alloc // price))
-            order  = self.order_factory.market(
+            alloc = self.config.trade_size * Decimal(weight)
+            qty = max(1, int(alloc // price))
+            order = self.order_factory.market(
                 instrument_id=inst_id,
                 order_side=OrderSide.BUY,
                 quantity=Quantity.from_int(qty),
@@ -56,9 +57,3 @@ class MultiBuyAndHold(Strategy):
         for pos in list(self._positions):
             self.close_position(pos)
         self.log.info("MultiBuyAndHold stopped", color=LogColor.GREEN)
-
-
-
-
-
-
